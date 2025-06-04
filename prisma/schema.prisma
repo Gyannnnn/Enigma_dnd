@@ -1,0 +1,62 @@
+generator client {
+  provider = "prisma-client-js"
+  
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum role {
+  admin
+  coordinator
+}
+
+model user {
+  userId                       String      @id @default(uuid())
+  userName                     String
+  userAvtar                    String
+  userPassword                 String
+  userEmail                    String      @unique
+  userRegistrationNumber       String      @unique
+  userRole                     role        @default(admin)
+
+
+  form                         Form[]
+  formSubmission               FormSubmissions[]
+
+  @@index([userId,userRole,userEmail])
+}
+
+model Form {
+  id                           String      @id @default(uuid())
+  userId                       String
+  createdAt                    DateTime    @default(now())
+  publishd                     Boolean     @default(false)
+  name                         String
+  description                  String      @default("")
+  content                      String      @default("[]")
+  visits                       Int         @default(0)
+  submissions                  Int         @default(0)
+  shareUrl                     String
+
+
+  formSubmissions              FormSubmissions[]
+  user        user             @relation(fields: [userId],references: [userId])
+  
+  @@index([id,publishd,createdAt])
+}
+
+model FormSubmissions {
+  id                           String       @id                    @default(uuid())
+  createdAt                    DateTime     @default(now())
+  formId                       String
+  content                      String
+  userId                       String
+
+  form                         Form         @relation(fields: [formId],references: [id])
+  user                         user         @relation(fields: [userId],references: [userId])
+
+  @@index([id,formId,userId])
+}

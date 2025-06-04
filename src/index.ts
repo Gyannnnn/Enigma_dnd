@@ -1,0 +1,36 @@
+require("dotenv").config();
+import cors from 'cors'
+import express from "express";
+const app = express();
+
+app.use(cors())
+app.use(express.json())
+
+
+
+
+
+
+import authRouter from './routes/auth/auth.routes';
+
+
+
+
+
+app.use("/api/v1/auth",authRouter)
+
+
+
+app.get("/", (req, res) => {
+  res.status(200).json({
+    info: "Drag and drop api ",
+    version: "v1",
+    dev:"Gyanranjan Patra"
+  });
+});
+
+app.listen(process.env.PORT || 3000, () => {
+  console.log(
+    `Server is running at http://localhost:${process.env.PORT || 3000}`
+  );
+});
