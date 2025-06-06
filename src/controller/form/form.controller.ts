@@ -17,7 +17,7 @@ export const getFormStats = async (req: Request, res: Response) => {
         userId,
       },
     });
-    if (!userId) {
+    if (!isUserExist) {
       res.status(404).json({
         message: "No users found !",
       });
