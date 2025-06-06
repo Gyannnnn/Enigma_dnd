@@ -10,7 +10,9 @@ const app = (0, express_1.default)();
 app.use((0, cors_1.default)());
 app.use(express_1.default.json());
 const auth_routes_1 = __importDefault(require("./routes/auth/auth.routes"));
+const form_routes_1 = __importDefault(require("./routes/form/form.routes"));
 app.use("/api/v1/auth", auth_routes_1.default);
+app.use("/api/v1/form", form_routes_1.default);
 app.get("/", (req, res) => {
     res.status(200).json({
         info: "Drag and drop api ",

@@ -12,12 +12,14 @@ app.use(express.json())
 
 
 import authRouter from './routes/auth/auth.routes';
+import formRouter from './routes/form/form.routes';
 
 
 
 
 
-app.use("/api/v1/auth",authRouter)
+app.use("/api/v1/auth",authRouter);
+app.use("/api/v1/form",formRouter);
 
 
 
