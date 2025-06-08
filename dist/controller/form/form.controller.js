@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createNewForm = exports.getFormStats = void 0;
+exports.getAllForm = exports.createNewForm = exports.getFormStats = void 0;
 const client_1 = require("@prisma/client");
 const prisma = new client_1.PrismaClient();
 const zod_1 = __importDefault(require("zod"));
@@ -129,3 +129,40 @@ const createNewForm = (req, res) => __awaiter(void 0, void 0, void 0, function* 
     }
 });
 exports.createNewForm = createNewForm;
+const getAllForm = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const schema = zod_1.default.object({
+            userId: zod_1.default.string().uuid("User id is required and it must be uuid"),
+        });
+        const result = schema.safeParse(req.params);
+        if (!result.success) {
+            res.status(400).json({
+                message: "Invalid input",
+                error: result.error,
+            });
+            return;
+        }
+        const { userId } = result.data;
+        const forms = yield prisma.form.findMany({
+            where: { userId },
+        });
+        if (!forms || forms.length === 0) {
+            res.status(404).json({
+                message: "No forms found",
+            });
+            return;
+        }
+        res.status(200).json({
+            message: "Forms fetched",
+            forms,
+        });
+    }
+    catch (error) {
+        const err = error;
+        res.status(500).json({
+            message: "Internal server error",
+            error: err.message,
+        });
+    }
+});
+exports.getAllForm = getAllForm;

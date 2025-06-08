@@ -123,3 +123,41 @@ export const createNewForm = async (req: Request, res: Response) => {
     });
   }
 };
+
+export const getAllForm = async (req: Request, res: Response) => {
+  try {
+    const schema = z.object({
+      userId: z.string().uuid("User id is required and it must be uuid"),
+    });
+    const result = schema.safeParse(req.params);
+    if (!result.success) {
+      res.status(400).json({
+        message: "Invalid input",
+        error: result.error,
+      });
+      return;
+    }
+    const { userId } = result.data;
+
+    const forms = await prisma.form.findMany({
+      where: { userId },
+    });
+    if (!forms || forms.length === 0) {
+      res.status(404).json({
+        message: "No forms found",
+      });
+      return;
+    }
+
+    res.status(200).json({
+      message: "Forms fetched",
+      forms,
+    });
+  } catch (error) {
+    const err = error as Error;
+    res.status(500).json({
+      message: "Internal server error",
+      error: err.message,
+    });
+  }
+};
