@@ -1,6 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 import { Request, Response } from "express";
 const prisma = new PrismaClient();
+import z from "zod";
 
 export const getFormStats = async (req: Request, res: Response) => {
   const { userId } = req.params;
@@ -58,6 +59,61 @@ export const getFormStats = async (req: Request, res: Response) => {
         submissionRate: submissionRate,
         bounceRate: bounceRate,
       },
+    });
+  } catch (error) {
+    const err = error as Error;
+    res.status(500).json({
+      message: "Internal server error",
+      error: err.message,
+    });
+  }
+};
+
+export const createNewForm = async (req: Request, res: Response) => {
+  try {
+    const schema = z.object({
+      userId: z.string().uuid(),
+      name: z.string().min(4, "Name is required and of 4 characters"),
+      description: z.string(),
+    });
+    const result = schema.safeParse(req.body);
+    if (!result.success) {
+      res.status(400).json({
+        message: "Invalid input",
+        error: result.error,
+      });
+      return;
+    }
+
+    const { userId, name, description } = result.data;
+
+    const user = await prisma.user.findUnique({
+      where: {
+        userId,
+      },
+    });
+    if (!user) {
+      res.status(404).json({
+        message: "No users found !",
+      });
+    }
+    const newForm = await prisma.form.create({
+      data: {
+        userId,
+        name,
+        description,
+      },
+    });
+
+    if (!newForm) {
+      res.status(400).json({
+        message: "Failed to create form",
+      });
+      return;
+    }
+    res.status(200).json({
+      message: `${name} Form created successfully`,
+      form: newForm,
     });
   } catch (error) {
     const err = error as Error;

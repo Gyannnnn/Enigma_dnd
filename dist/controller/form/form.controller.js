@@ -8,10 +8,14 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getFormStats = void 0;
+exports.createNewForm = exports.getFormStats = void 0;
 const client_1 = require("@prisma/client");
 const prisma = new client_1.PrismaClient();
+const zod_1 = __importDefault(require("zod"));
 const getFormStats = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { userId } = req.params;
     if (!(userId === null || userId === void 0 ? void 0 : userId.trim())) {
@@ -26,7 +30,7 @@ const getFormStats = (req, res) => __awaiter(void 0, void 0, void 0, function* (
                 userId,
             },
         });
-        if (!userId) {
+        if (!isUserExist) {
             res.status(404).json({
                 message: "No users found !",
             });
@@ -72,3 +76,56 @@ const getFormStats = (req, res) => __awaiter(void 0, void 0, void 0, function* (
     }
 });
 exports.getFormStats = getFormStats;
+const createNewForm = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const schema = zod_1.default.object({
+            userId: zod_1.default.string().uuid(),
+            name: zod_1.default.string().min(4, "Name is required and of 4 characters"),
+            description: zod_1.default.string(),
+        });
+        const result = schema.safeParse(req.body);
+        if (!result.success) {
+            res.status(400).json({
+                message: "Invalid input",
+                error: result.error,
+            });
+            return;
+        }
+        const { userId, name, description } = result.data;
+        const user = yield prisma.user.findUnique({
+            where: {
+                userId,
+            },
+        });
+        if (!user) {
+            res.status(404).json({
+                message: "No users found !",
+            });
+        }
+        const newForm = yield prisma.form.create({
+            data: {
+                userId,
+                name,
+                description,
+            },
+        });
+        if (!newForm) {
+            res.status(400).json({
+                message: "Failed to create form",
+            });
+            return;
+        }
+        res.status(200).json({
+            message: `${name} Form created successfully`,
+            form: newForm,
+        });
+    }
+    catch (error) {
+        const err = error;
+        res.status(500).json({
+            message: "Internal server error",
+            error: err.message,
+        });
+    }
+});
+exports.createNewForm = createNewForm;

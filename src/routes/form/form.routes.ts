@@ -1,9 +1,13 @@
 import { Router } from "express";
 const formRouter = Router();
 
-import { getFormStats } from "../../controller/form/form.controller";
+import { createNewForm, getFormStats } from "../../controller/form/form.controller";
 
-formRouter.get("/stats/:userId",getFormStats)
+
+
+formRouter.post("/create",createNewForm)
+
+formRouter.get("/stats/:userId",getFormStats);
 
 
 export default formRouter
