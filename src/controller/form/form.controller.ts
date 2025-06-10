@@ -161,3 +161,41 @@ export const getAllForm = async (req: Request, res: Response) => {
     });
   }
 };
+
+
+export const deleteForm = async(req:Request,res:Response)=>{
+  const {formid} = req.params
+  if(!formid){
+    res.status(400).json({
+      message: "All fields are required"
+    });
+    return
+  }
+
+  try {
+    const form = await prisma.form.findUnique({
+      where:{
+        id:formid
+      }
+    })
+    if(!form){
+      res.status(404).json({
+        message: "No form found"
+      })
+    }
+    await prisma.form.delete({
+      where:{
+        id:formid
+      }
+    })
+    res.status(200).json({
+      message: `${form?.name} form deleted `
+    })
+  } catch (error) {
+    const err = error as Error
+    res.status(500).json({
+      message: "Internal server error",
+      error:err.message
+    })
+  }
+}

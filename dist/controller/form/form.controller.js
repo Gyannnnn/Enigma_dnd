@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getAllForm = exports.createNewForm = exports.getFormStats = void 0;
+exports.deleteForm = exports.getAllForm = exports.createNewForm = exports.getFormStats = void 0;
 const client_1 = require("@prisma/client");
 const prisma = new client_1.PrismaClient();
 const zod_1 = __importDefault(require("zod"));
@@ -166,3 +166,40 @@ const getAllForm = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
     }
 });
 exports.getAllForm = getAllForm;
+const deleteForm = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { formid } = req.params;
+    if (!formid) {
+        res.status(400).json({
+            message: "All fields are required"
+        });
+        return;
+    }
+    try {
+        const form = yield prisma.form.findUnique({
+            where: {
+                id: formid
+            }
+        });
+        if (!form) {
+            res.status(404).json({
+                message: "No form found"
+            });
+        }
+        yield prisma.form.delete({
+            where: {
+                id: formid
+            }
+        });
+        res.status(200).json({
+            message: `${form === null || form === void 0 ? void 0 : form.name} form deleted `
+        });
+    }
+    catch (error) {
+        const err = error;
+        res.status(500).json({
+            message: "Internal server error",
+            error: err.message
+        });
+    }
+});
+exports.deleteForm = deleteForm;
