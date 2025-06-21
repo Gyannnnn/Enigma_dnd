@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteForm = exports.getAllForm = exports.createNewForm = exports.getFormStats = void 0;
+exports.getFormById = exports.deleteForm = exports.getAllForm = exports.createNewForm = exports.getFormStats = void 0;
 const client_1 = require("@prisma/client");
 const prisma = new client_1.PrismaClient();
 const zod_1 = __importDefault(require("zod"));
@@ -144,7 +144,9 @@ const getAllForm = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
         }
         const { userId } = result.data;
         const forms = yield prisma.form.findMany({
-            where: { userId },
+            where: { userId }, orderBy: {
+                createdAt: "desc"
+            }
         });
         if (!forms || forms.length === 0) {
             res.status(404).json({
@@ -203,3 +205,49 @@ const deleteForm = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
     }
 });
 exports.deleteForm = deleteForm;
+const getFormById = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { userId, formId } = req.body;
+    if (!(userId === null || userId === void 0 ? void 0 : userId.trim()) || !(formId === null || formId === void 0 ? void 0 : formId.trim())) {
+        res.status(400).json({
+            message: "All fields are required"
+        });
+        return;
+    }
+    try {
+        const user = yield prisma.user.findUnique({
+            where: {
+                userId
+            }
+        });
+        if (!user) {
+            res.status(404).json({
+                message: "NO users found"
+            });
+            return;
+        }
+        const form = yield prisma.form.findUnique({
+            where: {
+                userId,
+                id: formId
+            }
+        });
+        if (!form) {
+            res.status(404).json({
+                message: "No form found"
+            });
+            return;
+        }
+        res.status(200).json({
+            message: `${form.name} form fetched successfully`,
+            form: form
+        });
+    }
+    catch (error) {
+        const err = error;
+        res.status(500).json({
+            message: "Internal server error",
+            error: err.message
+        });
+    }
+});
+exports.getFormById = getFormById;

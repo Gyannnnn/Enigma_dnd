@@ -140,7 +140,9 @@ export const getAllForm = async (req: Request, res: Response) => {
     const { userId } = result.data;
 
     const forms = await prisma.form.findMany({
-      where: { userId },
+      where: { userId },orderBy:{
+        createdAt:"desc"
+      }
     });
     if (!forms || forms.length === 0) {
       res.status(404).json({
@@ -190,6 +192,53 @@ export const deleteForm = async(req:Request,res:Response)=>{
     })
     res.status(200).json({
       message: `${form?.name} form deleted `
+    })
+  } catch (error) {
+    const err = error as Error
+    res.status(500).json({
+      message: "Internal server error",
+      error:err.message
+    })
+  }
+}
+
+
+export const getFormById = async(req:Request,res:Response)=>{
+  const{userId,formId} = req.body;
+  if(!userId?.trim() || !formId?.trim()){
+    res.status(400).json({
+      message: "All fields are required"
+    });
+    return
+  }
+
+  try {
+    const user = await prisma.user.findUnique({
+      where:{
+        userId
+      }
+    });
+    if(!user){
+      res.status(404).json({
+        message: "NO users found"
+      });
+      return;
+    }
+    const form = await prisma.form.findUnique({
+      where:{
+        userId,
+        id:formId
+      }
+    })
+    if(!form){
+      res.status(404).json({
+        message: "No form found"
+      });
+      return
+    }
+    res.status(200).json({
+      message: `${form.name} form fetched successfully`,
+      form:form
     })
   } catch (error) {
     const err = error as Error

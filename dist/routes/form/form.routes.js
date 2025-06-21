@@ -7,6 +7,6 @@ const adminCordinator_auth_1 = require("../../middleware/auth/adminCordinator.au
 formRouter.post("/create", adminCordinator_auth_1.adminCoordinatorAuthValidation, form_controller_1.createNewForm);
 formRouter.delete("/delete/:formid", adminCordinator_auth_1.adminCoordinatorAuthValidation, form_controller_1.deleteForm);
 formRouter.get("/stats/:userId", form_controller_1.getFormStats);
-90;
 formRouter.get("/all/:userId", form_controller_1.getAllForm);
+formRouter.get("/getform", form_controller_1.getFormById);
 exports.default = formRouter;
