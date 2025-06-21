@@ -1,16 +1,33 @@
 import { Router } from "express";
 const formRouter = Router();
 
-import { createNewForm, deleteForm, getAllForm, getFormById, getFormStats } from "../../controller/form/form.controller";
+import {
+  createNewForm,
+  deleteForm,
+  getAllForm,
+  getFormById,
+  getFormByUrl,
+  getFormStats,
+  publishForm,
+  submitForm,
+  updateForm,
+} from "../../controller/form/form.controller";
 import { adminCoordinatorAuthValidation } from "../../middleware/auth/adminCordinator.auth";
 
+formRouter.post("/create", adminCoordinatorAuthValidation, createNewForm);
 
+formRouter.get("/getform", getFormById);
+formRouter.put("/updateForm", updateForm);
 
-formRouter.post("/create",adminCoordinatorAuthValidation,createNewForm)
-formRouter.delete("/delete/:formid",adminCoordinatorAuthValidation,deleteForm)
-formRouter.get("/stats/:userId",getFormStats);
-formRouter.get("/all/:userId",getAllForm)
-formRouter.get("/getform",getFormById)
+formRouter.delete(
+  "/delete/:formid",
+  adminCoordinatorAuthValidation,
+  deleteForm
+);
+formRouter.get("/stats/:userId", getFormStats);
+formRouter.get("/all/:userId", getAllForm);
+formRouter.put("/publish",publishForm);
+formRouter.put("/getformbyurl/:formUrl",getFormByUrl)
+formRouter.put("/submit",submitForm)
 
-
-export default formRouter
+export default formRouter;
