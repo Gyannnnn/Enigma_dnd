@@ -207,7 +207,7 @@ const deleteForm = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
 });
 exports.deleteForm = deleteForm;
 const getFormById = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { userId, formId } = req.body;
+    const { userId, formId } = req.params;
     if (!(userId === null || userId === void 0 ? void 0 : userId.trim()) || !(formId === null || formId === void 0 ? void 0 : formId.trim())) {
         res.status(400).json({
             message: "All fields are required",

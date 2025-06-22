@@ -203,7 +203,7 @@ export const deleteForm = async (req: Request, res: Response) => {
 };
 
 export const getFormById = async (req: Request, res: Response) => {
-  const { userId, formId } = req.body;
+  const { userId, formId } = req.params;
   if (!userId?.trim() || !formId?.trim()) {
     res.status(400).json({
       message: "All fields are required",

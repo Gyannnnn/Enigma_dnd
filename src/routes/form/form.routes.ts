@@ -16,7 +16,7 @@ import { adminCoordinatorAuthValidation } from "../../middleware/auth/adminCordi
 
 formRouter.post("/create", adminCoordinatorAuthValidation, createNewForm);
 
-formRouter.get("/getform", getFormById);
+formRouter.get("/getform/:userId/:formId", getFormById);
 formRouter.put("/updateForm", updateForm);
 
 formRouter.delete(
