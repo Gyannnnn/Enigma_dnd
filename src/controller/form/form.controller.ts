@@ -375,45 +375,67 @@ export const getFormByUrl = async (req: Request, res: Response) => {
 };
 
 
+export const submitForm = async (req: Request, res: Response) => {
+  const { formUrl, content,userId } = req.body;
 
-export const submitForm = async(req:Request,res:Response)=>{
-  const{formUrl,content} = req.body
-  if(!formUrl?.trim() || !content){
+  if (!formUrl?.trim() || !content || !userId.trim()) {
     res.status(400).json({
-      messsage: "All fields are required"
+      messsage: "All fields are required",
+    });
+    return;
+  }
+
+  const parsedSubmissionData = JSON.parse(content); // array of answers from frontend
+
+  try {
+    const form = await prisma.form.findUnique({
+      where: { shareUrl: formUrl },
+    });
+
+    if (!form) {
+       res.status(404).json({ message: "Form not found" });
+       return
+    }
+
+    // const userId = "3d8cb8a8-6b06-4fba-ab35-edf87860e6e9"; // 🛑 Get this from auth/session/middleware (e.g. req.user.userId)
+    if (!userId) {
+     res.status(401).json({ message: "Unauthorized" });
+      return 
+    }
+
+    // Map frontend answers to FormSubmissions[] structure
+    const formattedSubmissions = parsedSubmissionData.map((item: any) => ({
+      content: JSON.stringify(item), // your form response per field
+      userId,
+    }));
+
+    const response = await prisma.form.update({
+      where: { shareUrl: formUrl },
+      data: {
+        submissions: {
+          increment: 1,
+        },
+        formSubmissions: {
+          create: formattedSubmissions, // ✅ Correctly structured array
+        },
+      },
+    });
+
+    if (!response) {
+      res.status(400).json({ message: "Failed to submit form" });
+      return 
+    }
+
+     res.status(200).json({
+      message: `${response.name} form submitted`,
+    });
+
+  } catch (error) {
+    const err = error as Error;
+     res.status(500).json({
+      message: "Internal server error",
+      error: err.message,
     });
     return
   }
-  try {
-    const response = await prisma.form.update({
-      data:{
-        submissions:{
-          increment:1
-        },
-        formSubmissions:{
-          create:content
-        }
-      },
-      where:{
-        shareUrl:formUrl
-      }
-    })
-    if(!response){
-      res.status(400).json({
-        message: "Failed to submit form"
-      });
-      return
-    }
-
-    res.status(200).json({
-      message: `${response.name} form submitted`
-    })
-
-  } catch (error) {
-    const err = error as Error
-    res.status(500).json({
-      message: "Internal server error",
-      error:err.message
-    })
-  }
-}
+};

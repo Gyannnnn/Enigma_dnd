@@ -381,43 +381,58 @@ const getFormByUrl = (req, res) => __awaiter(void 0, void 0, void 0, function* (
 });
 exports.getFormByUrl = getFormByUrl;
 const submitForm = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { formUrl, content } = req.body;
-    if (!(formUrl === null || formUrl === void 0 ? void 0 : formUrl.trim()) || !content) {
+    const { formUrl, content, userId } = req.body;
+    if (!(formUrl === null || formUrl === void 0 ? void 0 : formUrl.trim()) || !content || !userId.trim()) {
         res.status(400).json({
-            messsage: "All fields are required"
+            messsage: "All fields are required",
         });
         return;
     }
+    const parsedSubmissionData = JSON.parse(content); // array of answers from frontend
     try {
+        const form = yield prisma.form.findUnique({
+            where: { shareUrl: formUrl },
+        });
+        if (!form) {
+            res.status(404).json({ message: "Form not found" });
+            return;
+        }
+        // const userId = "3d8cb8a8-6b06-4fba-ab35-edf87860e6e9"; // 🛑 Get this from auth/session/middleware (e.g. req.user.userId)
+        if (!userId) {
+            res.status(401).json({ message: "Unauthorized" });
+            return;
+        }
+        // Map frontend answers to FormSubmissions[] structure
+        const formattedSubmissions = parsedSubmissionData.map((item) => ({
+            content: JSON.stringify(item), // your form response per field
+            userId,
+        }));
         const response = yield prisma.form.update({
+            where: { shareUrl: formUrl },
             data: {
                 submissions: {
-                    increment: 1
+                    increment: 1,
                 },
                 formSubmissions: {
-                    create: content
-                }
+                    create: formattedSubmissions, // ✅ Correctly structured array
+                },
             },
-            where: {
-                shareUrl: formUrl
-            }
         });
         if (!response) {
-            res.status(400).json({
-                message: "Failed to submit form"
-            });
+            res.status(400).json({ message: "Failed to submit form" });
             return;
         }
         res.status(200).json({
-            message: `${response.name} form submitted`
+            message: `${response.name} form submitted`,
         });
     }
     catch (error) {
         const err = error;
         res.status(500).json({
             message: "Internal server error",
-            error: err.message
+            error: err.message,
         });
+        return;
     }
 });
 exports.submitForm = submitForm;
