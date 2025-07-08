@@ -353,6 +353,7 @@ export const getFormByUrl = async (req: Request, res: Response) => {
       },
       select: {
         content: true,
+        userId:true
       },
     });
     if (!formContent) {

@@ -358,6 +358,7 @@ const getFormByUrl = (req, res) => __awaiter(void 0, void 0, void 0, function* (
             },
             select: {
                 content: true,
+                userId: true
             },
         });
         if (!formContent) {
